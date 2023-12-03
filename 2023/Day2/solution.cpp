@@ -8,62 +8,44 @@
 
 std::pair<int, int> solution(std::string line, int game_id) {
   bool is_possible = true;
-  int game_power = 1;
   std::string cubes = line.substr(line.find(":") + 2);
-
-  std::unordered_map<std::string, int> rules{
-      {"red", 12},
-      {"green", 13},
-      {"blue", 14},
-  };
-
-  std::unordered_map<std::string, int> amounts{
-      {"red", 0},
-      {"green", 0},
-      {"blue", 0},
-  };
-
-  std::string color = "";
-  std::string amount = "";
-  int parsed_amount = 0;
-  bool found_color = false;
+  std::string amount_string = "";
+  int max_amounts[3]{0, 0, 0};
 
   for (int i = 0; i < cubes.size(); i++) {
-    found_color = false;
-    if (std::isdigit(cubes[i])) {
-      amount += cubes[i];
-    } else if (cubes[i] == ' ') {
-      parsed_amount = amount.size() > 1 ? std::stoi(amount) : (amount[0] - '0');
-
-      if (color.size() > 0) {
-        found_color = true;
+    if (cubes[i] == 'r') {
+      int amount = amount_string.size() > 1 ? std::stoi(amount_string)
+                                            : (amount_string[0] - '0');
+      if (amount > 12) {
+        is_possible = false;
       }
 
-      for (const auto it : rules) {
-        if (color.find(it.first) != std::string::npos) {
-          color = it.first;
-        }
+      max_amounts[0] = std::max(max_amounts[0], amount);
+      amount_string = "";
+    } else if (cubes[i] == 'g') {
+      int amount = amount_string.size() > 1 ? std::stoi(amount_string)
+                                            : (amount_string[0] - '0');
+      if (amount > 13) {
+        is_possible = false;
       }
 
-      if (found_color) {
-        amounts[color] = std::max(amounts[color], parsed_amount);
-
-        if (parsed_amount > rules[color]) {
-          is_possible = false;
-        }
+      max_amounts[1] = std::max(max_amounts[1], amount);
+      amount_string = "";
+    } else if (cubes[i] == 'b') {
+      int amount = amount_string.size() > 1 ? std::stoi(amount_string)
+                                            : (amount_string[0] - '0');
+      if (amount > 14) {
+        is_possible = false;
       }
 
-      color = "";
-      amount = found_color ? "" : amount;
-    } else {
-      color += cubes[i];
+      max_amounts[2] = std::max(max_amounts[2], amount);
+      amount_string = "";
+    } else if (std::isdigit(cubes[i])) {
+      amount_string += cubes[i];
     }
   }
 
-  for (const auto it : amounts) {
-    game_power *= it.second;
-  }
-
+  int game_power = max_amounts[0] * max_amounts[1] * max_amounts[2];
   return std::make_pair(is_possible ? game_id : 0, game_power);
 }
 
@@ -71,16 +53,16 @@ int main(int argc, char *argv[]) {
   std::fstream file(argv[1]);
   std::string line;
 
-  int part_one_total = 0;
-  int part_two_total = 0;
+  std::pair<int, int> total{0, 0};
 
-  int i = 0;
+  int i = 1;
   while (std::getline(file, line)) {
-    part_one_total += solution(line, i).first;
-    part_two_total += solution(line, i).second;
+    auto result = solution(line, i);
+    total.first += result.first;
+    total.second += result.second;
     i++;
   }
 
-  std::cout << "Part 1: " << part_one_total << "\n";
-  std::cout << "Part 2: " << part_two_total << "\n";
+  std::cout << "Part 1: " << total.first << "\n";
+  std::cout << "Part 2: " << total.second << "\n";
 }
