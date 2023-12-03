@@ -6,14 +6,10 @@
 #include <unordered_map>
 #include <vector>
 
-std::pair<int, int> solution(std::string line) {
-  int game_id = std::stoi(line.substr(line.find(" ") + 1, line.find(":") - 5));
+std::pair<int, int> solution(std::string line, int game_id) {
   bool is_possible = true;
   int game_power = 1;
   std::string cubes = line.substr(line.find(":") + 2);
-  std::istringstream iss(cubes);
-  std::vector<std::string> tokens;
-  std::string token;
 
   std::unordered_map<std::string, int> rules{
       {"red", 12},
@@ -27,23 +23,40 @@ std::pair<int, int> solution(std::string line) {
       {"blue", 0},
   };
 
-  while (std::getline(iss, token, ' '))
-    tokens.push_back(token);
+  std::string color = "";
+  std::string amount = "";
+  int parsed_amount = 0;
+  bool found_color = false;
 
-  for (int i = 0; i < tokens.size(); i += 2) {
-    int amount = std::stoi(tokens[i]);
-    std::string color = tokens[i + 1];
+  for (int i = 0; i < cubes.size(); i++) {
+    found_color = false;
+    if (std::isdigit(cubes[i])) {
+      amount += cubes[i];
+    } else if (cubes[i] == ' ') {
+      parsed_amount = amount.size() > 1 ? std::stoi(amount) : (amount[0] - '0');
 
-    for (const auto it : rules) {
-      if (color.find(it.first) != std::string::npos) {
-        color = it.first;
+      if (color.size() > 0) {
+        found_color = true;
       }
-    }
 
-    amounts[color] = std::max(amounts[color], amount);
+      for (const auto it : rules) {
+        if (color.find(it.first) != std::string::npos) {
+          color = it.first;
+        }
+      }
 
-    if (amount > rules[color]) {
-      is_possible = false;
+      if (found_color) {
+        amounts[color] = std::max(amounts[color], parsed_amount);
+
+        if (parsed_amount > rules[color]) {
+          is_possible = false;
+        }
+      }
+
+      color = "";
+      amount = found_color ? "" : amount;
+    } else {
+      color += cubes[i];
     }
   }
 
@@ -61,9 +74,11 @@ int main(int argc, char *argv[]) {
   int part_one_total = 0;
   int part_two_total = 0;
 
+  int i = 0;
   while (std::getline(file, line)) {
-    part_one_total += solution(line).first;
-    part_two_total += solution(line).second;
+    part_one_total += solution(line, i).first;
+    part_two_total += solution(line, i).second;
+    i++;
   }
 
   std::cout << "Part 1: " << part_one_total << "\n";
