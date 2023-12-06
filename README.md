@@ -6,8 +6,8 @@ undergoing event solutions you can check them [here](./2023).
 
 Every problem on this repository also contains a readme file that takes you
 to the problem page in the AOC website. Also, I tried to solve most of them
-with both C and C++. But some of them might be available only in C++ as I'm
-better at it. (More languages might come in the future if I feel like it)
+using either C++ or Rust. But some of them might be available only in C++ as
+I'm better at it. (More languages might come in the future if I feel like it)
 
 This is by no means an attempt to teach algorithms, its just a place to store
 everything I've managed to solve for further reference and to display.
