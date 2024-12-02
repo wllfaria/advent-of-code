@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::timed;
+
 fn find_matches(line: &str) -> i32 {
     let mut sum = 0;
     let mut found_divisor: bool = false;
@@ -10,20 +12,18 @@ fn find_matches(line: &str) -> i32 {
     let mut number_string = String::new();
 
     for c in numbers.chars() {
-        if !c.is_digit(10) && number_string.len() > 0 {
+        if !c.is_ascii_digit() && !number_string.is_empty() {
             if !found_divisor {
                 let n = number_string.parse::<i32>().unwrap();
                 map.insert(n, 1);
-            } else if found_divisor {
-                if map.contains_key(&number_string.parse::<i32>().unwrap()) {
-                    sum += 1;
-                }
+            } else if found_divisor && map.contains_key(&number_string.parse::<i32>().unwrap()) {
+                sum += 1;
             }
             number_string = String::new();
         } else if c == '|' {
             found_divisor = true;
             continue;
-        } else if c.is_digit(10) {
+        } else if c.is_ascii_digit() {
             number_string.push(c);
         }
     }
@@ -37,12 +37,11 @@ fn find_matches(line: &str) -> i32 {
 
 fn part_one(card: &str) -> i32 {
     let matches = find_matches(card);
-    let result = if matches > 1 {
+    if matches > 1 {
         1 << (matches - 1)
     } else {
         matches
-    };
-    result
+    }
 }
 
 fn part_two(cards: &str) -> i32 {
@@ -55,10 +54,10 @@ fn part_two(cards: &str) -> i32 {
         let matches = find_matches(card);
         for j in 1..=matches {
             let copies = *map.get(&current_card_id).unwrap_or(&0);
-            if map.contains_key(&(current_card_id + j)) {
-                *map.get_mut(&(current_card_id + j)).unwrap() += 1 + copies;
+            if let std::collections::hash_map::Entry::Vacant(e) = map.entry(current_card_id + j) {
+                e.insert(1 + copies);
             } else {
-                map.insert(current_card_id + j, 1 + copies);
+                *map.get_mut(&(current_card_id + j)).unwrap() += 1 + copies;
             }
         }
     }
@@ -70,17 +69,15 @@ fn part_two(cards: &str) -> i32 {
     total_cards + current_card_id
 }
 
-fn main() {
-    let input = include_str!("input.txt");
+pub fn run(part: Option<u8>) {
+    let input = include_str!("../../inputs/2023/day4/input.txt");
 
-    let mut part_one_total: i32 = 0;
-
-    for line in input.lines() {
-        part_one_total += part_one(line)
-    }
-
-    let part_two_total = part_two(input);
-
-    println!("Part one: {}", part_one_total);
-    println!("Part two: {}", part_two_total);
+    match part.unwrap_or_default() {
+        1 => timed(part_one, input, 1),
+        2 => timed(part_two, input, 2),
+        _ => {
+            timed(part_one, input, 1);
+            timed(part_two, input, 2)
+        }
+    };
 }

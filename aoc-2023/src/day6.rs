@@ -1,3 +1,5 @@
+use crate::timed;
+
 fn calculate_ways_to_win(time: i64, distance: i64) -> i64 {
     let mut total: i64 = 0;
 
@@ -30,7 +32,7 @@ fn get_value(input: &mut &[u8]) -> i64 {
     val as i64
 }
 
-fn part_one(input: &str) {
+fn part_one(input: &str) -> u32 {
     let (time, distance) = input.split_once("\n").unwrap();
     let mut total: u32 = 1;
 
@@ -52,12 +54,12 @@ fn part_one(input: &str) {
         .iter()
         .enumerate()
         .map(|(i, v)| calculate_ways_to_win(*v as i64, distance[i] as i64) as u32)
-        .fold(1, |acc, x| acc * x);
+        .product::<u32>();
 
-    println!("Part one: {}", total);
+    total
 }
 
-fn part_two(input: &str) {
+fn part_two(input: &str) -> i64 {
     let mut iter = input.split("\n");
     let mut time_line = iter.next().unwrap().as_bytes();
     let mut distance_line = iter.next().unwrap().as_bytes();
@@ -65,13 +67,22 @@ fn part_two(input: &str) {
     let time = get_value(&mut time_line);
     let distance = get_value(&mut distance_line);
 
-    let total = calculate_ways_to_win(time, distance);
-
-    println!("Part two: {}", total);
+    calculate_ways_to_win(time, distance)
 }
 
-fn main() {
-    let input = include_str!("input.txt");
-    part_one(input);
-    part_two(input);
+pub fn run(part: Option<u8>) {
+    let input = include_str!("../../inputs/2023/day6/input.txt");
+
+    match part.unwrap_or_default() {
+        1 => {
+            timed(part_one, input, 1);
+        }
+        2 => {
+            timed(part_two, input, 2);
+        }
+        _ => {
+            timed(part_one, input, 1);
+            timed(part_two, input, 2);
+        }
+    };
 }

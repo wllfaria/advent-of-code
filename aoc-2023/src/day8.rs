@@ -1,6 +1,8 @@
 use ::std::collections::HashMap;
 
-fn part_one(input: &str) {
+use crate::timed;
+
+fn part_one(input: &str) -> u64 {
     let (directions, lines) = input.split_once("\n\n").unwrap();
     let start = "AAA";
     let end = "ZZZ";
@@ -17,7 +19,7 @@ fn part_one(input: &str) {
 
     let map: HashMap<&str, Vec<&str>> = lines.lines().fold(HashMap::new(), |mut acc, line| {
         let (key, values) = line.split_once(" = ").unwrap();
-        let entry = acc.entry(key).or_insert(vec![]);
+        let entry = acc.entry(key).or_default();
         *entry = vec![&values[1..4], &values[6..9]];
         acc
     });
@@ -40,10 +42,20 @@ fn part_one(input: &str) {
         }
     }
 
-    println!("Part 1: {}", count);
+    count
 }
 
-fn main() {
-    let input = include_str!("input.txt");
-    part_one(input);
+pub fn run(part: Option<u8>) {
+    let input = include_str!("../../inputs/2023/day8/input.txt");
+    match part.unwrap_or_default() {
+        1 => {
+            timed(part_one, input, 1);
+        }
+        2 => {
+            panic!("part 2 not solved");
+        }
+        _ => {
+            timed(part_one, input, 1);
+        }
+    };
 }

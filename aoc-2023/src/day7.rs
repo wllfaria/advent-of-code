@@ -1,4 +1,6 @@
-use ::std::collections::HashMap;
+use std::collections::HashMap;
+
+use crate::timed;
 
 #[derive(Debug)]
 struct Hand {
@@ -50,22 +52,19 @@ fn get_kind(cards: &str) -> u8 {
     kind as u8
 }
 
-fn part_one(input: &str) {
+fn part_one(input: &str) -> u64 {
     let mut hands: Vec<Hand> = vec![];
-    input
-        .split("\n")
-        .filter(|x| !x.is_empty())
-        .for_each(|line| {
-            let (cards, bid) = line.split_once(" ").unwrap();
-            let kind = get_kind(cards);
-            let strength = get_strength(cards, false);
-            hands.push(Hand {
-                kind,
-                strength,
-                rank: 0,
-                bid: bid.parse::<u16>().unwrap(),
-            })
-        });
+    input.split("\n").filter(|x| !x.is_empty()).for_each(|line| {
+        let (cards, bid) = line.split_once(" ").unwrap();
+        let kind = get_kind(cards);
+        let strength = get_strength(cards, false);
+        hands.push(Hand {
+            kind,
+            strength,
+            rank: 0,
+            bid: bid.parse::<u16>().unwrap(),
+        })
+    });
 
     hands.sort_by_key(|x| x.kind);
     hands.sort_by(|a, b| {
@@ -80,16 +79,26 @@ fn part_one(input: &str) {
     hands.iter_mut().enumerate().for_each(|(i, x)| {
         x.rank = (i + 1) as u16;
     });
-    let sum = hands.iter().fold(0 as u64, |mut acc, x| {
-        acc += (x.bid as u64 * x.rank as u64) as u64;
+    let sum = hands.iter().fold(0, |mut acc, x| {
+        acc += x.bid as u64 * x.rank as u64;
         acc
     });
 
-    println!("Part 1: {}", sum);
+    sum
 }
 
-fn main() {
-    let input = include_str!("input.txt");
+pub fn run(part: Option<u8>) {
+    let input = include_str!("../../inputs/2023/day7/input.txt");
 
-    part_one(input);
+    match part.unwrap_or_default() {
+        1 => {
+            timed(part_one, input, 1);
+        }
+        2 => {
+            panic!("part 2 not solved");
+        }
+        _ => {
+            timed(part_one, input, 1);
+        }
+    };
 }
