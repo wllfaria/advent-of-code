@@ -1,6 +1,8 @@
 pub mod day1;
 pub mod day2;
 pub mod day3;
+pub mod day5;
+pub mod day6;
 
 use std::fmt::Display;
 
@@ -9,6 +11,8 @@ pub fn run_day(day: u8, part: Option<u8>) -> Result<(), String> {
         1 => day1::run(part),
         2 => day2::run(part),
         3 => day3::run(part),
+        5 => day5::run(part),
+        6 => day6::run(part),
         _ => panic!("day {day} is not solved"),
     };
 
