@@ -1,6 +1,8 @@
 use std::collections::HashSet;
+use std::sync::Mutex;
 
 use itertools::Itertools;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::timed;
 
@@ -100,7 +102,7 @@ pub fn part_two(input: &str) -> usize {
     let mut guard_position = (0, 0);
     let facing_direction = FacingDirection::default();
 
-    let mut maze = input
+    let maze = input
         .lines()
         .enumerate()
         .map(|(row, line)| {
@@ -119,51 +121,52 @@ pub fn part_two(input: &str) -> usize {
         })
         .collect_vec();
 
-    let mut cycles = HashSet::new();
-    let mut path = HashSet::new();
+    let maze_positions = (0..maze_size.1)
+        .flat_map(|row| (0..maze_size.0).map(move |col| (col, row)))
+        .collect_vec();
 
-    let simulate_guard = |maze: &[Vec<CellState>], path: &mut HashSet<((usize, usize), FacingDirection)>| -> bool {
-        let mut current_position = guard_position;
-        let mut current_direction = facing_direction;
-
-        loop {
-            if !path.insert((current_position, current_direction)) {
-                return true;
-            }
-
-            if going_out_of_bounds(current_position, maze_size, current_direction) {
-                return false;
-            }
-
-            let (col, row) = current_direction.neighbor(current_position);
-            let cell = maze[row][col];
-            if cell == CellState::Obstructed {
-                current_direction = current_direction.next();
-                continue;
-            }
-
-            current_position = (col, row);
+    let cycles = Mutex::new(HashSet::new());
+    maze_positions.par_iter().for_each(|&(col, row)| {
+        if maze[row][col] == CellState::Obstructed || (col, row) == guard_position {
+            return;
         }
-    };
 
-    for row in 0..maze_size.1 {
-        for col in 0..maze_size.0 {
-            let cell = maze[row][col];
-            if cell == CellState::Obstructed || (col, row) == guard_position {
-                continue;
+        let mut local_maze = maze.clone();
+        local_maze[row][col] = CellState::Obstructed;
+
+        let mut local_path = HashSet::new();
+
+        let simulate_guard = |maze: &[Vec<CellState>], path: &mut HashSet<((usize, usize), FacingDirection)>| -> bool {
+            let mut current_position = guard_position;
+            let mut current_direction = facing_direction;
+
+            loop {
+                if !path.insert((current_position, current_direction)) {
+                    return true;
+                }
+
+                if going_out_of_bounds(current_position, maze_size, current_direction) {
+                    return false;
+                }
+
+                let (next_col, next_row) = current_direction.neighbor(current_position);
+                let cell = maze[next_row][next_col];
+                if cell == CellState::Obstructed {
+                    current_direction = current_direction.next();
+                    continue;
+                }
+
+                current_position = (next_col, next_row);
             }
+        };
 
-            maze[row][col] = CellState::Obstructed;
-
-            if simulate_guard(&maze, &mut path) {
-                cycles.insert((col, row));
-            }
-            path.clear();
-            maze[row][col] = CellState::Empty;
+        if simulate_guard(&local_maze, &mut local_path) {
+            cycles.lock().unwrap().insert((col, row));
         }
-    }
+    });
 
-    cycles.len()
+    let x = cycles.lock().unwrap().len();
+    x
 }
 
 pub fn run(part: Option<u8>) {
