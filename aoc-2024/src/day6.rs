@@ -120,10 +120,11 @@ pub fn part_two(input: &str) -> usize {
         .collect_vec();
 
     let mut cycles = HashSet::new();
-    let simulate_guard = |maze: &[Vec<CellState>]| -> bool {
+    let mut path = HashSet::new();
+
+    let simulate_guard = |maze: &[Vec<CellState>], path: &mut HashSet<((usize, usize), FacingDirection)>| -> bool {
         let mut current_position = guard_position;
         let mut current_direction = facing_direction;
-        let mut path = HashSet::new();
 
         loop {
             if !path.insert((current_position, current_direction)) {
@@ -154,10 +155,10 @@ pub fn part_two(input: &str) -> usize {
 
             maze[row][col] = CellState::Obstructed;
 
-            if simulate_guard(&maze) {
+            if simulate_guard(&maze, &mut path) {
                 cycles.insert((col, row));
             }
-
+            path.clear();
             maze[row][col] = CellState::Empty;
         }
     }
